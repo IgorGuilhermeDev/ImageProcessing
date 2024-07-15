@@ -1,6 +1,6 @@
 package com.rocha.igor;
 
-import ui.MainPane;
+import com.rocha.igor.ui.MainPane;
 
 public class Main{
     public static void main(String[] args) {
