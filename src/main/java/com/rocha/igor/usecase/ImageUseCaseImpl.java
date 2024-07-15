@@ -41,34 +41,31 @@ public class ImageUseCaseImpl implements ImageUseCase{
 
     @Override
     public <T> void rotate(int[][] matR, int[][] matG, int[][] matB, MatrixConsumer<T, T, T> generateImage, Double angle) {
-        int width = matR[0].length;
-        int height = matR.length;
+        int originalWidth = matR[0].length, originalHeight = matR.length;
         double radians = Math.toRadians(angle);
+        double cos = Math.cos(radians), sin = Math.sin(radians);
 
-        int newWidth = (int) (Math.abs(width * Math.cos(radians)) + Math.abs(height * Math.sin(radians)));
-        int newHeight = (int) (Math.abs(width * Math.sin(radians)) + Math.abs(height * Math.cos(radians)));
+        int newWidth = (int) (Math.abs(originalWidth * cos) + Math.abs(originalHeight * sin));
+        int newHeight = (int) (Math.abs(originalWidth * sin) + Math.abs(originalHeight * cos));
+        int[][][] newImage = new int[3][newHeight][newWidth];
 
-        int[][] newRed = new int[newHeight][newWidth];
-        int[][] newGreen = new int[newHeight][newWidth];
-        int[][] newBlue = new int[newHeight][newWidth];
+        int centerX = originalWidth / 2, centerY = originalHeight / 2;
+        int newCenterX = newWidth / 2, newCenterY = newHeight / 2;
 
-        int centerX = width / 2;
-        int centerY = height / 2;
-        int newCenterX = newWidth / 2;
-        int newCenterY = newHeight / 2;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int newX = (int) ((x - centerX) * Math.cos(radians) - (y - centerY) * Math.sin(radians) + newCenterX);
-                int newY = (int) ((x - centerX) * Math.sin(radians) + (y - centerY) * Math.cos(radians) + newCenterY);
+        for (int y = 0; y < originalHeight; y++) {
+            for (int x = 0; x < originalWidth; x++) {
+                int translatedX = x - centerX, translatedY = y - centerY;
+                int newX = (int) (translatedX * cos - translatedY * sin) + newCenterX;
+                int newY = (int) (translatedX * sin + translatedY * cos) + newCenterY;
 
                 if (newX >= 0 && newX < newWidth && newY >= 0 && newY < newHeight) {
-                    newRed[newY][newX] = matR[y][x];
-                    newGreen[newY][newX] = matG[y][x];
-                    newBlue[newY][newX] = matB[y][x];
+                    newImage[0][newY][newX] = matR[y][x];
+                    newImage[1][newY][newX] = matG[y][x];
+                    newImage[2][newY][newX] = matB[y][x];
                 }
             }
         }
-        generateImage.accept((T) newRed, (T) newGreen, (T) newBlue);
+
+        generateImage.accept((T) newImage[0], (T) newImage[1], (T) newImage[2]);
     }
 }
