@@ -1,5 +1,6 @@
 package com.rocha.igor.ui;
 
+import com.rocha.igor.domain.FilterType;
 import com.rocha.igor.domain.Image;
 import com.rocha.igor.domain.Scale;
 import com.rocha.igor.usecase.ImageUseCase;
@@ -39,6 +40,7 @@ public class MainPane extends JFrame {
         setupRemoveMenu(bar);
         setupChooseMenu(bar);
         setupIdentifyMenu(bar);
+        setupFiltersMenu(bar);
     }
     private void setupOpenMenu(JMenuBar bar){
         JMenu openMenu = new JMenu("Abrir");
@@ -80,6 +82,7 @@ public class MainPane extends JFrame {
 
         setupGrayScaleListeners(grayScale, darkGray, lightGray);
         setupRotateListener(degree);
+
         processMenu.add(grayScale);
         processMenu.add(binaryImage);
         processMenu.add(negative);
@@ -90,6 +93,20 @@ public class MainPane extends JFrame {
         processMenu.add(degree);
 
         bar.add(processMenu);
+    }
+
+    private void setupFiltersMenu(JMenuBar bar){
+        JMenu filtersMenu = new JMenu("Filtros");
+        var boxBlurFilter = new JMenuItem("Filtro da média / blur");
+        var sobelFilter = new JMenuItem("Sobel");
+        var gaussianFilter = new JMenuItem("Gaussiano");
+        var medianFilter = new JMenuItem("Filtro de mediana");
+        filtersMenu.add(boxBlurFilter);
+        filtersMenu.add(sobelFilter);
+        filtersMenu.add(gaussianFilter);
+        filtersMenu.add(medianFilter);
+        setupFiltersListeners(medianFilter, boxBlurFilter, sobelFilter, gaussianFilter);
+        bar.add(filtersMenu);
     }
 
     private void setupRemoveMenu(JMenuBar bar){
@@ -243,6 +260,38 @@ public class MainPane extends JFrame {
                JOptionPane.showMessageDialog(null, "Ângulo inválido!");
            }});
        }
+    private <T extends JMenuItem> void setupFiltersListeners(T medianFilter, T blurFilter, T sobelFilter, T gaussianFilter){
+        blurFilter.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(null, "Digite o Nível de blur");
+            try {
+                int blurLevel = Integer.parseInt(input);
+                Image image = getRGBImage();
+                this.useCase.filter(image.getMatR(), image.getMatG(), image.getMatB(), this::geraImagem, blurLevel, FilterType.MEAN, false);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "Nível Inválido");
+            }});
+
+        medianFilter.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(null, "Digite o Nível de blur");
+            try {
+                int blurLevel = Integer.parseInt(input);
+                Image image = getRGBImage();
+                this.useCase.filter(image.getMatR(), image.getMatG(), image.getMatB(), this::geraImagem, blurLevel, FilterType.MEAN, true);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(null, "Nível Inválido");
+            }});
+
+        sobelFilter.addActionListener(e -> {
+            Image image = getRGBImage();
+            this.useCase.filter(image.getMatR(), image.getMatG(), image.getMatB(), this::geraImagem, 30, FilterType.SOBEL, false);
+        });
+
+        gaussianFilter.addActionListener(e -> {
+            Image image = getRGBImage();
+            this.useCase.filter(image.getMatR(), image.getMatG(), image.getMatB(), this::geraImagem, 7, FilterType.GAUSSIAN, false);
+        });
+    }
+
 
    private void updateMatrix(){
        Vector<int[][]> rgbMat = getMatrixRGB();
